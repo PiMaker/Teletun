@@ -10,6 +10,9 @@ from pytg.exceptions import ConnectionError
 import base64
 import threading
 import sys
+import psutil
+import os
+import signal
 
 
 # Connect to telegram
@@ -89,7 +92,7 @@ def main_loop():
             msg = (yield)
             # Check if it is an actual "message" message and if the sender is our peer
             if msg is not None and msg['event'] == unicode('message')\
-                    and not msg['own'] and msg['from']['print_name'] == username:
+                    and not msg['own'] and msg['sender']['name'] == username:
                 try:
                     # Decode data and write it to the tunnel
                     data = base64.b64decode(msg.text)
@@ -131,3 +134,8 @@ tun.down()
 receiver.stop()
 
 print 'Bye bye!'
+
+# Literally Overkill
+
+current_process = psutil.Process()
+os.kill(current_process.pid, signal.SIGKILL)
