@@ -24,6 +24,10 @@ pip install python-pytun pytg
 
 Download the python script. Run the python script. Pray to the gods for mercy.
 
+Note that one has to call it as-is while the other has to pass `--server` to the script. The other client will then be available at `10.8.0.1` or `10.8.0.2` depending on your side.
+
+This also requires root on many platforms, as ridiculous as it sounds. Only tested on Ubuntu.
+
 # Performance
 
 Not that it really matters (you didn't think you're going to use this in anything serious, did you?), but actually, performance is not too bad.
