@@ -44,6 +44,7 @@ if i not in contacts:
 
 # Print username
 username = unicode(contacts[i]['print_name'])
+peer_id = contacts[i]['peer_id']
 print 'Connecting to partner: ' + username
 
 
@@ -75,6 +76,11 @@ tun.up()
 up = True
 
 
+# Init stats
+sent = 0
+received = 0
+
+
 # Helper function that can be executed in a thread
 def main_loop_starter():
     pass
@@ -86,21 +92,23 @@ def main_loop_starter():
 @coroutine
 def main_loop():
     global up
+    global received
     try:
         while up:
             # Receive message from telegram, this includes ALL messages
             msg = (yield)
             # Check if it is an actual "message" message and if the sender is our peer
             if msg is not None and msg['event'] == unicode('message')\
-                    and not msg['own'] and msg['sender']['name'] == username:
+                    and not msg['own'] and msg['sender']['peer_id'] == peer_id:
                 try:
                     # Decode data and write it to the tunnel
                     data = base64.b64decode(msg.text)
+                    received += len(data)
                     tun.write(data)
                 except:
-                    print msg.text
+                    print 'Invalid Base64-Data: ' + msg.text
     except:
-        print 'Receiver stopped'
+        print '!!! Receiver crashed!'
 
 
 print 'TUN is up'
@@ -123,17 +131,22 @@ try:
         # Continually read from the tunnel and write data to telegram in base64
         # TODO: Telegram supports unicode, base64 can probably be replaced for something less overhead-inducing
         buf = tun.read(tun.mtu)
-        sender.msg(username, unicode(base64.b64encode(buf)))
+        data = base64.b64encode(buf)
+        sent += len(data)
+        sender.msg(username, unicode(data))
 
 except:
-    print 'Exiting...'
+    print '(Interrupt/Crash)'
 
 # Cleanup and stop application
 up = False
 tun.down()
 receiver.stop()
 
-print 'Bye bye!'
+print 'Bytes sent via Telegram: ' + str(sent)
+print 'Bytes received via Telegram: ' + str(received)
+
+print '~~ Bye bye! ~~'
 
 # Literally Overkill
 
